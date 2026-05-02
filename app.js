@@ -1,0 +1,259 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDoNK2C7ZLgIeys4_pkeeA4tu5MWhnEe90",
+    authDomain: "rrhh-app-db86a.firebaseapp.com",
+    projectId: "rrhh-app-db86a",
+    storageBucket: "rrhh-app-db86a.firebasestorage.app",
+    messagingSenderId: "581054831697",
+    appId: "1:581054831697:web:4a973e6c519502fe062c70"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Referencias DOM
+const formEmpleado = document.getElementById('form-empleado');
+const listaEmpleados = document.getElementById('lista-empleados');
+const zonaImpresion = document.getElementById('zona-impresion');
+
+
+
+let editStatus = false;
+let idEdicion = '';
+
+// ==========================================
+// 1. LECTURA DE EMPLEADOS Y SINCRONIZACIÓN
+// ==========================================
+onSnapshot(collection(db, "empleados"), (snapshot) => {
+    listaEmpleados.innerHTML = ''; 
+    // Limpiar el select de ausencias y dejar la opción por defecto
+    if (selectEmpleado) selectEmpleado.innerHTML = '<option value="">Seleccione un empleado...</option>'; 
+    
+    snapshot.forEach((doco) => { 
+        const emp = doco.data();
+        const id = doco.id;
+        
+        // Llenar lista de gestión
+        const li = document.createElement('li');
+        li.className = "flex justify-between items-center p-3 bg-gray-50 border rounded shadow-sm";
+        li.innerHTML = `
+            <div class="flex-1">
+                <p class="font-bold text-sm">${emp.nombre}</p>
+                <p class="text-xs text-gray-500">${emp.cargo} - $${emp.salario.toFixed(2)}</p>
+            </div>
+            <div class="flex gap-1">
+                <button class="btn-calc bg-green-500 text-white px-2 py-1 rounded text-xs print:hidden">Boleta</button>
+                <button class="btn-edit bg-blue-500 text-white px-2 py-1 rounded text-xs print:hidden">Editar</button>
+                <button class="btn-del bg-red-500 text-white px-2 py-1 rounded text-xs print:hidden">Borrar</button>
+            </div>
+        `;
+        
+        li.querySelector('.btn-calc').addEventListener('click', () => generarBoleta(emp));
+        li.querySelector('.btn-del').addEventListener('click', () => borrarEmpleado(id));
+        li.querySelector('.btn-edit').addEventListener('click', () => cargarParaEdicion(id, emp));
+        listaEmpleados.appendChild(li);
+
+        // Llenar el select del Módulo 3
+        if (selectEmpleado) {
+            const option = document.createElement('option');
+            option.value = emp.nombre;
+            option.text = emp.nombre;
+            selectEmpleado.appendChild(option);
+        }
+    });
+});
+
+// ==========================================
+// 2. GESTIÓN DE EMPLEADOS (CRUD)
+// ==========================================
+formEmpleado.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const empleado = {
+        nombre: document.getElementById('nombre').value,
+        dui: document.getElementById('dui').value,
+        cargo: document.getElementById('cargo').value,
+        salario: parseFloat(document.getElementById('salario').value)
+    };
+
+    try {
+        if (!editStatus) {
+            await addDoc(collection(db, "empleados"), empleado);
+        } else {
+            await updateDoc(doc(db, "empleados", idEdicion), empleado);
+            resetForm();
+        }
+        formEmpleado.reset();
+    } catch (err) {
+        console.error("Error:", err);
+    }
+});
+
+async function borrarEmpleado(id) {
+    if (confirm("¿Borrar empleado?")) {
+        await deleteDoc(doc(db, "empleados", id));
+    }
+}
+
+function cargarParaEdicion(id, emp) {
+    document.getElementById('nombre').value = emp.nombre;
+    document.getElementById('dui').value = emp.dui;
+    document.getElementById('cargo').value = emp.cargo;
+    document.getElementById('salario').value = emp.salario;
+    editStatus = true;
+    idEdicion = id;
+    const btn = formEmpleado.querySelector('button[type="submit"]');
+    btn.innerText = "Actualizar Cambios";
+    btn.className = "w-full bg-purple-600 text-white p-2 rounded font-bold";
+}
+
+function resetForm() {
+    editStatus = false;
+    idEdicion = '';
+    const btn = formEmpleado.querySelector('button[type="submit"]');
+    btn.innerText = "Guardar en Base de Datos";
+    btn.className = "w-full bg-blue-600 text-white p-2 rounded";
+}
+
+// ==========================================
+// 3. GESTIÓN DE AUSENCIAS (MÓDULO 3)
+// ==========================================
+
+// Referencias Módulo 3
+const formAusencia = document.getElementById('form-ausencia');
+const selectEmpleado = document.getElementById('aus-empleado');
+const listaAusencias = document.getElementById('lista-ausencias');
+// Variables para controlar la edición de ausencias
+let editStatusAusencia = false;
+let idEdicionAusencia = '';
+
+// GUARDAR O ACTUALIZAR AUSENCIA
+formAusencia.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const ausencia = {
+        empleado: document.getElementById('aus-empleado').value,
+        inicio: document.getElementById('aus-inicio').value,
+        fin: document.getElementById('aus-fin').value,
+        tipo: document.getElementById('aus-tipo').value,
+        motivo: document.getElementById('aus-motivo').value,
+        fechaActualizacion: new Date().toISOString()
+    };
+
+    try {
+        if (!editStatusAusencia) {
+            // Crear nuevo registro
+            await addDoc(collection(db, "ausencias"), ausencia);
+            alert("Ausencia registrada con éxito.");
+        } else {
+            // Actualizar registro existente
+            await updateDoc(doc(db, "ausencias", idEdicionAusencia), ausencia);
+            alert("Registro de ausencia actualizado.");
+            resetFormAusencia();
+        }
+        formAusencia.reset();
+    } catch (err) {
+        console.error("Error al procesar ausencia:", err);
+    }
+});
+
+// ESCUCHAR CAMBIOS EN TIEMPO REAL (HISTORIAL)
+onSnapshot(collection(db, "ausencias"), (snapshot) => {
+    listaAusencias.innerHTML = ''; 
+    snapshot.forEach((doco) => {
+        const aus = doco.data();
+        const id = doco.id;
+
+        const li = document.createElement('li');
+        li.className = "p-3 bg-gray-50 border-l-4 border-yellow-500 rounded text-sm shadow-sm flex justify-between items-start";
+        li.innerHTML = `
+            <div class="flex-1">
+                <div class="flex justify-between font-bold mb-1 mr-4">
+                    <span class="text-blue-800">${aus.empleado}</span>
+                    <span class="text-xs bg-gray-200 px-2 py-1 rounded text-gray-700">${aus.tipo}</span>
+                </div>
+                <p class="text-gray-600">Del: ${aus.inicio} al ${aus.fin}</p>
+                <p class="text-gray-400 italic text-xs">"${aus.motivo}"</p>
+            </div>
+            <div class="flex flex-col gap-1 print:hidden">
+                <button class="btn-edit-aus bg-blue-400 text-white px-2 py-1 rounded text-[10px] hover:bg-blue-500">Editar</button>
+                <button class="btn-del-aus bg-red-400 text-white px-2 py-1 rounded text-[10px] hover:bg-red-500">Borrar</button>
+            </div>
+        `;
+
+        // Eventos para los nuevos botones
+        li.querySelector('.btn-edit-aus').addEventListener('click', () => cargarParaEdicionAusencia(id, aus));
+        li.querySelector('.btn-del-aus').addEventListener('click', () => borrarAusencia(id));
+
+        listaAusencias.appendChild(li);
+    });
+});
+
+// FUNCIÓN PARA ELIMINAR
+async function borrarAusencia(id) {
+    if (confirm("¿Deseas eliminar este registro de ausencia permanentemente?")) {
+        try {
+            await deleteDoc(doc(db, "ausencias", id));
+        } catch (err) {
+            console.error("Error al eliminar ausencia:", err);
+        }
+    }
+}
+
+// FUNCIÓN PARA CARGAR DATOS EN EL FORMULARIO
+function cargarParaEdicionAusencia(id, aus) {
+    document.getElementById('aus-empleado').value = aus.empleado;
+    document.getElementById('aus-inicio').value = aus.inicio;
+    document.getElementById('aus-fin').value = aus.fin;
+    document.getElementById('aus-tipo').value = aus.tipo;
+    document.getElementById('aus-motivo').value = aus.motivo;
+
+    editStatusAusencia = true;
+    idEdicionAusencia = id;
+
+    // Cambiar aspecto del botón para indicar edición
+    const btn = formAusencia.querySelector('button[type="submit"]');
+    btn.innerText = "Actualizar Registro";
+    btn.className = "w-full bg-orange-600 text-white p-2 rounded font-bold hover:bg-orange-700";
+}
+
+// FUNCIÓN PARA RESETEAR EL ESTADO DEL FORMULARIO
+function resetFormAusencia() {
+    editStatusAusencia = false;
+    idEdicionAusencia = '';
+    const btn = formAusencia.querySelector('button[type="submit"]');
+    btn.innerText = "Guardar Registro";
+    btn.className = "w-full bg-yellow-600 text-white p-2 rounded hover:bg-yellow-700 font-bold";
+}
+
+// ==========================================
+// 4. CÁLCULO DE BOLETA (ISR 2025)
+// ==========================================
+function generarBoleta(emp) {
+    const salario = emp.salario;
+    const isss = salario > 1000 ? 30 : salario * 0.03;
+    const afp = salario * 0.0725;
+    const baseRenta = salario - isss - afp;
+    let isr = 0;
+
+    if (baseRenta > 2038.10) isr = (baseRenta - 2038.10) * 0.30 + 288.57;
+    else if (baseRenta > 895.24) isr = (baseRenta - 895.24) * 0.20 + 60.00;
+    else if (baseRenta > 550.00) isr = (baseRenta - 550.00) * 0.10 + 17.67;
+
+    const liquido = salario - isss - afp - isr;
+
+    document.getElementById('bol-nombre').innerText = emp.nombre;
+    document.getElementById('bol-dui').innerText = emp.dui;
+    document.getElementById('bol-cargo').innerText = emp.cargo;
+    document.getElementById('bol-salario').innerText = salario.toFixed(2);
+    document.getElementById('bol-isss').innerText = isss.toFixed(2);
+    document.getElementById('bol-afp').innerText = afp.toFixed(2);
+    document.getElementById('bol-isr').innerText = isr.toFixed(2);
+    document.getElementById('bol-liquido').innerText = liquido.toFixed(2);
+
+    document.getElementById('pat-isss').innerText = (salario > 1000 ? 75 : salario * 0.075).toFixed(2);
+    document.getElementById('pat-afp').innerText = (salario * 0.0875).toFixed(2);
+
+    zonaImpresion.classList.remove('hidden');
+}
