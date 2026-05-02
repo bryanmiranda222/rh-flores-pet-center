@@ -12,6 +12,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const linkBoleta = document.getElementById('link-boleta');
 
 // Referencias DOM
 const formEmpleado = document.getElementById('form-empleado');
@@ -94,6 +95,8 @@ async function borrarEmpleado(id) {
     if (confirm("¿Borrar empleado?")) {
         await deleteDoc(doc(db, "empleados", id));
     }
+    if (linkBoleta) linkBoleta.classList.add('hidden');
+    zonaImpresion.classList.add('hidden');
 }
 
 function cargarParaEdicion(id, emp) {
@@ -114,6 +117,8 @@ function resetForm() {
     const btn = formEmpleado.querySelector('button[type="submit"]');
     btn.innerText = "Guardar en Base de Datos";
     btn.className = "w-full bg-blue-600 text-white p-2 rounded";
+    if (linkBoleta) linkBoleta.classList.add('hidden');
+    zonaImpresion.classList.add('hidden');
 }
 
 // ==========================================
@@ -227,9 +232,8 @@ function resetFormAusencia() {
     btn.className = "w-full bg-yellow-600 text-white p-2 rounded hover:bg-yellow-700 font-bold";
 }
 
-// ==========================================
+
 // 4. CÁLCULO DE BOLETA (ISR 2025)
-// ==========================================
 function generarBoleta(emp) {
     const salario = emp.salario;
     const isss = salario > 1000 ? 30 : salario * 0.03;
@@ -251,9 +255,49 @@ function generarBoleta(emp) {
     document.getElementById('bol-afp').innerText = afp.toFixed(2);
     document.getElementById('bol-isr').innerText = isr.toFixed(2);
     document.getElementById('bol-liquido').innerText = liquido.toFixed(2);
-
     document.getElementById('pat-isss').innerText = (salario > 1000 ? 75 : salario * 0.075).toFixed(2);
     document.getElementById('pat-afp').innerText = (salario * 0.0875).toFixed(2);
 
     zonaImpresion.classList.remove('hidden');
+    window.location.hash = 'zona-impresion';
+    if (linkBoleta) {
+        linkBoleta.classList.remove('hidden');
+    }
 }
+
+
+// VALIDACIONES EN TIEMPO REAL (MÓDULO 1)
+const inputNombre = document.getElementById('nombre');
+const inputDui = document.getElementById('dui');
+const inputCargo = document.getElementById('cargo');
+const inputSalario = document.getElementById('salario'); 
+
+// Bloquear números y símbolos en Nombre (solo permite letras, tildes y espacios)
+inputNombre.addEventListener('input', function() {
+    this.value = this.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\s]/g, '');
+});
+
+// Bloquear letras y símbolos en DUI (solo permite números)
+inputDui.addEventListener('input', function() {
+    this.value = this.value.replace(/[^0-9]/g, '');
+});
+
+// Bloquear números y símbolos en Cargo
+inputCargo.addEventListener('input', function() {
+    this.value = this.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\s]/g, '');
+});
+
+// Bloquear el signo negativo en el salario
+inputSalario.addEventListener('keydown', function(e) {
+    // Si la tecla presionada es el signo menos (-), bloqueamos la acción
+    if (e.key === '-') {
+        e.preventDefault();
+    }
+});
+
+// Validación extra por si copian y pegan un número negativo
+inputSalario.addEventListener('input', function() {
+    if (this.value < 0) {
+        this.value = ''; // Borra el campo si detecta un valor menor a cero
+    }
+});
