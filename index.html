@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +12,7 @@
             body * {
                 visibility: hidden;
             }
-            
+
             #zona-impresion,
             #zona-impresion * {
                 visibility: visible;
@@ -27,172 +28,208 @@
     </style>
 </head>
 
-<body class="bg-gray-100 font-sans flex min-h-screen" style="background-color: rgb(211, 206, 206);">
-    <aside
-        class="w-64 bg-slate-900 text-white flex flex-col justify-between p-6 sticky top-0 h-screen print:hidden shadow-xl">
-        <div class="text-center">
-            <img src="fpc.jpg" alt="Logo Flores Pet Center"
-                class="w-24 h-24 object-cover mx-auto mb-4 rounded-full border-2 border-blue-500 shadow-lg">
-            <h2 class="text-sm font-light tracking-widest text-blue-400 uppercase mb-1">Flores Pet Center</h2>
-            <h1 class="text-lg font-bold leading-tight uppercase">Sistema de <br>Recursos Humanos</h1>
+<body class="bg-gray-100 font-sans" style="background-color: rgb(211, 206, 206);">
 
-            <div class="mt-10 space-y-4 text-left">
-                <a href="#form-empleado" class="block text-sm text-gray-300 hover:text-white transition-colors">👤
-                    Gestión de Personal</a>
-                <a href="#lista-empleados" class="block text-sm text-gray-300 hover:text-white transition-colors">💰
-                    Generar Planilla</a>
-                <a href="#form-ausencia" class="block text-sm text-gray-300 hover:text-white transition-colors">📅
-                    Control de Ausencias</a>
-                <a href="#zona-impresion" id="link-boleta" class="hidden block text-sm text-gray-300 hover:text-white transition-colors">
-                    📄 Ver Boleta Actual</a>
+    <div id="login-container" class="flex min-h-screen items-center justify-center w-full">
+        <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md border-t-4 border-blue-600">
+            <div class="text-center mb-6">
+                <img src="fpc.jpg" alt="Logo" class="w-20 h-20 mx-auto rounded-full mb-2 object-cover">
+                <h2 class="text-2xl font-bold text-gray-800">Iniciar Sesión</h2>
+                <p class="text-sm text-gray-500">Sistema de Recursos Humanos</p>
             </div>
+            <form id="form-login" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                    <input type="email" id="login-email" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Contraseña</label>
+                    <input type="password" id="login-password" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                </div>
+                <p id="login-error" class="text-red-500 text-sm hidden text-center font-semibold"></p>
+                <button type="submit"
+                    class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 font-bold transition-colors">Entrar</button>
+            </form>
         </div>
-        <div class="border-t border-slate-700 pt-4 text-center">
-            <p class="text-[10px] text-slate-500 uppercase tracking-tighter">versión 0.1</p>
-            <p class="text-xs font-bold text-slate-300">RH UES-2026</p>
-        </div>
-    </aside>
-    <main class="flex-1 p-8 overflow-y-auto">
-        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-blue-500">
-                <h2 class="text-2xl font-bold mb-4 text-blue-700">Ingreso de Empleados</h2>
-                <form id="form-empleado" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium">Nombre Completo</label>
-                        <input type="text" id="nombre" maxlength="50" pattern="[A-Za-záéíóúÁÉÍÓÚñÑ\s]+"
-                            title="Solo se permiten letras y espacios (máximo 50 caracteres)" required
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium">DUI (Sin guion)</label>
-                        <input type="text" id="dui" maxlength="9" minlength="9" pattern="[0-9]{9}"
-                            title="Debe contener exactamente 9 números" required
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium">Cargo</label>
-                        <input type="text" id="cargo" maxlength="30" pattern="[A-Za-záéíóúÁÉÍÓÚñÑ\s]+"
-                            title="Solo se permiten letras y espacios (máximo 30 caracteres)" required
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium">Salario Base ($)</label>
-                        <input type="number" id="salario" step="0.01" min="0" required
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                    </div>
-                    <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Guardar en
-                        Base de Datos</button>
-                </form>
-            </div>
+    </div>
+    <div id="app-container" class="hidden flex min-h-screen w-full">
+        <aside
+            class="w-64 bg-slate-900 text-white flex flex-col justify-between p-6 sticky top-0 h-screen print:hidden shadow-xl">
+            <div class="text-center">
+                <img src="fpc.jpg" alt="Logo Flores Pet Center"
+                    class="w-24 h-24 object-cover mx-auto mb-4 rounded-full border-2 border-blue-500 shadow-lg">
+                <h2 class="text-sm font-light tracking-widest text-blue-400 uppercase mb-1">Flores Pet Center</h2>
+                <h1 class="text-lg font-bold leading-tight uppercase">Sistema de <br>Recursos Humanos</h1>
 
-            <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-violet-500">
-                <h2 class="text-2xl font-bold mb-4 text-green-700">Generar Boleta de Pago</h2>
-                <p class="text-sm text-gray-600 mb-4">Selecciona un empleado para calcular sus prestaciones de Ley.</p>
-                <ul id="lista-empleados" class="space-y-2 mb-4 max-h-64 overflow-y-auto">
-                </ul>
+                <div class="mt-10 space-y-4 text-left">
+                    <a href="#form-empleado" class="block text-sm text-gray-300 hover:text-white transition-colors">👤
+                        Gestión de Personal</a>
+                    <a href="#lista-empleados" class="block text-sm text-gray-300 hover:text-white transition-colors">💰
+                        Generar Planilla</a>
+                    <a href="#form-ausencia" class="block text-sm text-gray-300 hover:text-white transition-colors">📅
+                        Control de Ausencias</a>
+                    <a href="#zona-impresion" id="link-boleta"
+                        class="hidden block text-sm text-gray-300 hover:text-white transition-colors">
+                        📄 Ver Boleta Actual</a>
+                </div>
             </div>
-        </div>
-
-        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-            <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-yellow-500">
-                <h2 class="text-2xl font-bold mb-4 text-yellow-700">Registrar Ausencia / Incapacidad</h2>
-                <form id="form-ausencia" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium">Empleado</label>
-                        <select id="aus-empleado" required
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                            <option value="">Seleccione un empleado...</option>
-                        </select>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
+            <div class="border-t border-slate-700 pt-4 text-center">
+                <button id="btn-logout" class="w-full bg-red-600 hover:bg-red-700 text-white text-sm py-2 px-4 rounded mb-4 transition-colors" style="border-radius: 50px;">Cerrar Sesión</button>
+                <p class="text-[10px] text-slate-500 uppercase tracking-tighter">versión 0.1</p>
+                <p class="text-xs font-bold text-slate-300">RH UES-2026</p>
+            </div>
+        </aside>
+        <main class="flex-1 p-8 overflow-y-auto">
+            <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-blue-500">
+                    <h2 class="text-2xl font-bold mb-4 text-blue-700">Ingreso de Empleados</h2>
+                    <form id="form-empleado" class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium">Fecha Inicio</label>
-                            <input type="date" id="aus-inicio" required
+                            <label class="block text-sm font-medium">Nombre Completo</label>
+                            <input type="text" id="nombre" maxlength="50" pattern="[A-Za-záéíóúÁÉÍÓÚñÑ\s]+"
+                                title="Solo se permiten letras y espacios (máximo 50 caracteres)" required
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium">Fecha Fin</label>
-                            <input type="date" id="aus-fin" required
+                            <label class="block text-sm font-medium">DUI (Sin guion)</label>
+                            <input type="text" id="dui" maxlength="9" minlength="9" pattern="[0-9]{9}"
+                                title="Debe contener exactamente 9 números" required
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
                         </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium">Tipo de Ausencia</label>
-                        <select id="aus-tipo" required
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                            <option value="Incapacidad ISSS">Incapacidad (ISSS)</option>
-                            <option value="Permiso sin goce">Permiso sin goce de sueldo</option>
-                            <option value="Permiso con goce">Permiso con goce de sueldo</option>
-                            <option value="Maternidad">Incapacidad por Maternidad</option>
-                            <option value="Ausencia Injustificada">Ausencia Injustificada</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium">Motivo / Notas</label>
-                        <textarea id="aus-motivo" rows="2" maxlength="100"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"></textarea>
-                    </div>
-                    <button type="submit"
-                        class="w-full bg-yellow-600 text-white p-2 rounded hover:bg-yellow-700 font-bold">Guardar
-                        Registro</button>
-                </form>
-            </div>
-
-            <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-gray-800">
-                <h2 class="text-2xl font-bold mb-4 text-gray-800">Historial de Ausencias</h2>
-                <ul id="lista-ausencias" class="space-y-3 mb-4 max-h-[400px] overflow-y-auto">
-                </ul>
-            </div>
-        </div>
-
-        <div id="zona-impresion"
-            class="max-w-4xl mx-auto mt-8 bg-white p-8 rounded-lg shadow-md hidden border-2 border-gray-200">
-            <div class="text-center mb-6 border-b pb-4">
-                <img src="fpc.jpg" alt="Logo de FPC" class="mx-auto mb-3"
-                    style="max-height: 80px; width: auto; border-radius: 50%;">
-                <h1 class="text-3xl font-bold uppercase">Flores Pet Center S.A. de C.V.</h1>
-                <p class="text-gray-500">Boleta de Pago de Salario</p>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <p><strong>Empleado:</strong> <span id="bol-nombre"></span></p>
-                <p><strong>DUI:</strong> <span id="bol-dui"></span></p>
-                <p><strong>Cargo:</strong> <span id="bol-cargo"></span></p>
-                <p><strong>Salario Base:</strong> $<span id="bol-salario"></span></p>
-            </div>
-
-            <div class="grid grid-cols-2 gap-8">
-                <div>
-                    <h3 class="font-bold text-red-600 border-b mb-2">Descuentos de Ley (Empleado)</h3>
-                    <p class="flex justify-between"><span>ISSS (3%):</span> <span>-$<span id="bol-isss"></span></span>
-                    </p>
-                    <p class="flex justify-between"><span>AFP (7.25%):</span> <span>-$<span id="bol-afp"></span></span>
-                    </p>
-                    <p class="flex justify-between"><span>Renta (ISR):</span> <span>-$<span id="bol-isr"></span></span>
-                    </p>
-
-                    <p class="flex justify-between font-bold mt-2 border-t pt-2"><span>Total a Recibir:</span>
-                        <span>$<span id="bol-liquido"></span></span>
-                    </p>
+                        <div>
+                            <label class="block text-sm font-medium">Cargo</label>
+                            <input type="text" id="cargo" maxlength="30" pattern="[A-Za-záéíóúÁÉÍÓÚñÑ\s]+"
+                                title="Solo se permiten letras y espacios (máximo 30 caracteres)" required
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium">Salario Base ($)</label>
+                            <input type="number" id="salario" step="0.01" min="0" required
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                        <button type="submit"
+                            class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700" style="border-radius: 50px;">Guardar en
+                            Base de Datos</button>
+                    </form>
                 </div>
 
-                <div>
-                    <h3 class="font-bold text-blue-600 border-b mb-2">Aportaciones Patronales (Costo Empresa)</h3>
-                    <p class="flex justify-between"><span>ISSS (7.5%):</span> <span>+$<span id="pat-isss"></span></span>
+                <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-violet-500">
+                    <h2 class="text-2xl font-bold mb-4 text-green-700">Generar Boleta de Pago</h2>
+                    <p class="text-sm text-gray-600 mb-4">Selecciona un empleado para calcular sus prestaciones de Ley.
                     </p>
-                    <p class="flex justify-between"><span>AFP (8.75%):</span> <span>+$<span id="pat-afp"></span></span>
-                    </p>
+                    <ul id="lista-empleados" class="space-y-2 mb-4 max-h-64 overflow-y-auto">
+                    </ul>
                 </div>
             </div>
 
-            <div class="mt-8 text-center print:hidden">
-                <button onclick="window.print()"
-                    class="bg-gray-800 text-white px-6 py-2 rounded shadow hover:bg-gray-900">
-                    🖨️ Imprimir Boleta
-                </button>
+            <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-yellow-500">
+                    <h2 class="text-2xl font-bold mb-4 text-yellow-700">Registrar Ausencia / Incapacidad</h2>
+                    <form id="form-ausencia" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium">Empleado</label>
+                            <select id="aus-empleado" required
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                                <option value="">Seleccione un empleado...</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium">Fecha Inicio</label>
+                                <input type="date" id="aus-inicio" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium">Fecha Fin</label>
+                                <input type="date" id="aus-fin" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium">Tipo de Ausencia</label>
+                            <select id="aus-tipo" required
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                                <option value="Incapacidad ISSS">Incapacidad (ISSS)</option>
+                                <option value="Permiso sin goce">Permiso sin goce de sueldo</option>
+                                <option value="Permiso con goce">Permiso con goce de sueldo</option>
+                                <option value="Maternidad">Incapacidad por Maternidad</option>
+                                <option value="Ausencia Injustificada">Ausencia Injustificada</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium">Motivo / Notas</label>
+                            <textarea id="aus-motivo" rows="2" maxlength="100"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"></textarea>
+                        </div>
+                        <button type="submit"
+                            class="w-full bg-yellow-600 text-white p-2 rounded hover:bg-yellow-700 font-bold" style="border-radius: 50px;">Guardar
+                            Registro</button>
+                    </form>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-gray-800">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Historial de Ausencias</h2>
+                    <ul id="lista-ausencias" class="space-y-3 mb-4 max-h-[400px] overflow-y-auto">
+                    </ul>
+                </div>
             </div>
-        </div>
-    </main>
+
+            <div id="zona-impresion"
+                class="max-w-4xl mx-auto mt-8 bg-white p-8 rounded-lg shadow-md hidden border-2 border-gray-200">
+                <div class="text-center mb-6 border-b pb-4">
+                    <img src="fpc.jpg" alt="Logo de FPC" class="mx-auto mb-3"
+                        style="max-height: 80px; width: auto; border-radius: 50%;">
+                    <h1 class="text-3xl font-bold uppercase">Flores Pet Center S.A. de C.V.</h1>
+                    <p class="text-gray-500">Boleta de Pago de Salario</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <p><strong>Empleado:</strong> <span id="bol-nombre"></span></p>
+                    <p><strong>DUI:</strong> <span id="bol-dui"></span></p>
+                    <p><strong>Cargo:</strong> <span id="bol-cargo"></span></p>
+                    <p><strong>Salario Base:</strong> $<span id="bol-salario"></span></p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="font-bold text-red-600 border-b mb-2">Descuentos de Ley (Empleado)</h3>
+                        <p class="flex justify-between"><span>ISSS (3%):</span> <span>-$<span
+                                    id="bol-isss"></span></span>
+                        </p>
+                        <p class="flex justify-between"><span>AFP (7.25%):</span> <span>-$<span
+                                    id="bol-afp"></span></span>
+                        </p>
+                        <p class="flex justify-between"><span>Renta (ISR):</span> <span>-$<span
+                                    id="bol-isr"></span></span>
+                        </p>
+
+                        <p class="flex justify-between font-bold mt-2 border-t pt-2"><span>Total a Recibir:</span>
+                            <span>$<span id="bol-liquido"></span></span>
+                        </p>
+                    </div>
+
+                    <div>
+                        <h3 class="font-bold text-blue-600 border-b mb-2">Aportaciones Patronales (Costo Empresa)</h3>
+                        <p class="flex justify-between"><span>ISSS (7.5%):</span> <span>+$<span
+                                    id="pat-isss"></span></span>
+                        </p>
+                        <p class="flex justify-between"><span>AFP (8.75%):</span> <span>+$<span
+                                    id="pat-afp"></span></span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-8 text-center print:hidden">
+                    <button onclick="window.print()"
+                        class="bg-gray-800 text-white px-6 py-2 rounded shadow hover:bg-gray-900" style="border-radius: 50px;">
+                        🖨️ Imprimir Boleta
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
     <script type="module" src="./app.js"></script>
 </body>
 
