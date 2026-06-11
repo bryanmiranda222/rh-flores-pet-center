@@ -18,6 +18,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 // Referencias DOM Generales y Auth
+const loadingContainer = document.getElementById('loading-container'); // NUEVO
 const linkBoleta = document.getElementById('link-boleta');
 const loginContainer = document.getElementById('login-container');
 const appContainer = document.getElementById('app-container');
@@ -43,6 +44,7 @@ let unsubAusencias = null;
 
 // Observador: Detecta si el usuario está logueado o no
 onAuthStateChanged(auth, (user) => {
+    loadingContainer.classList.add('hidden');
     if (user) {
         // Hay sesión activa: Oculta login, muestra app
         loginContainer.classList.add('hidden');
@@ -52,6 +54,7 @@ onAuthStateChanged(auth, (user) => {
     } else {
         // No hay sesión: Oculta app, muestra login
         appContainer.classList.add('hidden');
+        loadingContainer.classList.remove('hidden'); // NUEVO
         loginContainer.classList.remove('hidden');
         // Detenemos la lectura de datos para seguridad y rendimiento
         detenerListenersFirestore();
@@ -116,9 +119,12 @@ function iniciarListenersFirestore() {
                 <p class="text-xs text-gray-500">${emp.cargo} - $${emp.salario.toFixed(2)}</p>
             </div>
             <div class="flex gap-1">
-                <button class="btn-calc bg-green-500 text-white px-2 py-1 rounded text-xs print:hidden" style="border-radius: 50px;">Boleta</button>
-                <button class="btn-edit bg-blue-500 text-white px-2 py-1 rounded text-xs print:hidden" style="border-radius: 50px;">Editar</button>
-                <button class="btn-del bg-red-500 text-white px-2 py-1 rounded text-xs print:hidden" style="border-radius: 50px;">Borrar</button>
+                <button class="btn-calc bg-green-500 text-white px-2 py-1 print:hidden flex items-center justify-center" style="border-radius: 50px;" title="Generar Boleta">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://w3.org">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg></button>
+                <button class="btn-edit bg-blue-500 text-white px-2 py-1 rounded text-xs print:hidden" style="border-radius: 50px;" title="Editar">✎</button>
+                <button class="btn-del bg-red-500 text-white px-2 py-1 rounded text-xs print:hidden" style="border-radius: 50px;" title="Eliminar">✖︎</button>
             </div>
         `;
 
@@ -146,7 +152,7 @@ function iniciarListenersFirestore() {
             const id = doco.id;
 
             const li = document.createElement('li');
-            li.className = "p-3 bg-gray-50 border-l-4 border-yellow-500 rounded text-sm shadow-sm flex justify-between items-start";
+            li.className = "p-3 bg-gray-50 border-l-4 border-black rounded text-sm shadow-sm flex justify-between items-start";
             li.innerHTML = `
             <div class="flex-1">
                 <div class="flex justify-between font-bold mb-1 mr-4">
@@ -157,8 +163,8 @@ function iniciarListenersFirestore() {
                 <p class="text-gray-400 italic text-xs">"${aus.motivo}"</p>
             </div>
             <div class="flex flex-col gap-1 print:hidden">
-                <button class="btn-edit-aus bg-blue-400 text-white px-2 py-1 rounded text-[10px] hover:bg-blue-500" style="border-radius: 50px;">Editar</button>
-                <button class="btn-del-aus bg-red-400 text-white px-2 py-1 rounded text-[10px] hover:bg-red-500" style="border-radius: 50px;">Borrar</button>
+                <button class="btn-edit-aus bg-blue-400 text-white px-2 py-1 rounded text-[10px] hover:bg-blue-500" style="border-radius: 50px;" title="Editar">✎</button>
+                <button class="btn-del-aus bg-red-400 text-white px-2 py-1 rounded text-[10px] hover:bg-red-500" style="border-radius: 50px;" title="Eliminar">✖︎</button>
             </div>
         `;
 
@@ -211,16 +217,18 @@ function iniciarListenersFirestore() {
         editStatus = true;
         idEdicion = id;
         const btn = formEmpleado.querySelector('button[type="submit"]');
-        btn.innerText = "Actualizar Cambios";
+        btn.innerText = "🔃 Actualizar Empleado";
         btn.className = "w-full bg-purple-600 text-white p-2 rounded font-bold";
+        btn.title = "Actualizar Empleado";
     }
 
     function resetForm() {
         editStatus = false;
         idEdicion = '';
         const btn = formEmpleado.querySelector('button[type="submit"]');
-        btn.innerText = "Guardar en Base de Datos";
+        btn.innerText = "💾 Guardar Empleado";
         btn.className = "w-full bg-blue-600 text-white p-2 rounded";
+        btn.title = "Guardar Empleado";
         if (linkBoleta) linkBoleta.classList.add('hidden');
         zonaImpresion.classList.add('hidden');
     }
@@ -293,8 +301,9 @@ function iniciarListenersFirestore() {
 
         // Cambiar aspecto del botón para indicar edición
         const btn = formAusencia.querySelector('button[type="submit"]');
-        btn.innerText = "Actualizar Registro";
+        btn.innerText = "🔃 Actualizar Registro";
         btn.className = "w-full bg-orange-600 text-white p-2 rounded font-bold hover:bg-orange-700";
+        btn.title = "Actualizar Registro";
     }
 
     // FUNCIÓN PARA RESETEAR EL ESTADO DEL FORMULARIO
@@ -302,8 +311,9 @@ function iniciarListenersFirestore() {
         editStatusAusencia = false;
         idEdicionAusencia = '';
         const btn = formAusencia.querySelector('button[type="submit"]');
-        btn.innerText = "Guardar Registro";
+        btn.innerText = "💾 Guardar Registro";
         btn.className = "w-full bg-yellow-600 text-white p-2 rounded hover:bg-yellow-700 font-bold";
+        btn.title = "Guardar Registro";
     }
 
 
