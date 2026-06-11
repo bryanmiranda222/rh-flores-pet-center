@@ -42,22 +42,34 @@ let unsubAusencias = null;
 // 0. CONTROL DE SESIÓN (LOGIN / LOGOUT)
 // ==========================================
 
-// Observador: Detecta si el usuario está logueado o no
 onAuthStateChanged(auth, (user) => {
-    loadingContainer.classList.add('hidden');
-    if (user) {
-        // Hay sesión activa: Oculta login, muestra app
-        loginContainer.classList.add('hidden');
-        appContainer.classList.remove('hidden');
-        // Iniciamos la lectura de la base de datos SOLO cuando hay sesión
-        iniciarListenersFirestore();
+    console.log("Estado de sesión detectado. Usuario:", user ? user.email : "Ninguno");
+
+    // 1. Blindaje: Solo intentamos ocultar la carga si el contenedor existe
+    if (loadingContainer) {
+        loadingContainer.classList.add('hidden');
     } else {
-        // No hay sesión: Oculta app, muestra login
-        appContainer.classList.add('hidden');
-        loadingContainer.classList.remove('hidden'); // NUEVO
-        loginContainer.classList.remove('hidden');
-        // Detenemos la lectura de datos para seguridad y rendimiento
-        detenerListenersFirestore();
+        console.error("FALTA EL ID: 'loading-container' en el HTML");
+    }
+
+    if (user) {
+        // Hay sesión activa
+        if (loginContainer) loginContainer.classList.add('hidden');
+        if (appContainer) appContainer.classList.remove('hidden');
+        
+        // Verificamos que la función exista antes de llamarla
+        if (typeof iniciarListenersFirestore === 'function') {
+            iniciarListenersFirestore();
+        }
+    } else {
+        // No hay sesión (o acabas de cerrar sesión)
+        if (appContainer) appContainer.classList.add('hidden');
+        if (loginContainer) loginContainer.classList.remove('hidden');
+        
+        // Verificamos que la función exista antes de llamarla
+        if (typeof detenerListenersFirestore === 'function') {
+            detenerListenersFirestore();
+        }
     }
 });
 
@@ -82,6 +94,24 @@ formLogin.addEventListener('submit', async (e) => {
 btnLogout.addEventListener('click', () => {
     signOut(auth);
 });
+if (btnLogout) {
+    btnLogout.addEventListener('click', async () => {
+        try {
+            // 1. Volvemos a mostrar la pantalla de carga para una transición suave
+            loadingContainer.classList.remove('hidden');
+            
+            // 2. Cerramos la sesión en Firebase
+            await signOut(auth);
+            
+            // 3. Forzamos la recarga de la página para limpiar toda la memoria caché
+            window.location.reload(); 
+        } catch (error) {
+            console.error("Error al cerrar sesión:", error);
+            alert("Hubo un problema al cerrar la sesión.");
+        }
+    });
+}
+
 
 // Función para detener listeners al cerrar sesión
 function detenerListenersFirestore() {
