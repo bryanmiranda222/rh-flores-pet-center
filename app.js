@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 // 1. IMPORTAR MÓDULOS DE AUTENTICACIÓN
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDoNK2C7ZLgIeys4_pkeeA4tu5MWhnEe90",
@@ -25,6 +25,7 @@ const appContainer = document.getElementById('app-container');
 const formLogin = document.getElementById('form-login');
 const btnLogout = document.getElementById('btn-logout');
 const loginError = document.getElementById('login-error');
+const btnForgotPassword = document.getElementById('btn-forgot-password');
 
 // Referencias DOM CRUD
 const formEmpleado = document.getElementById('form-empleado');
@@ -71,6 +72,49 @@ onAuthStateChanged(auth, (user) => {
             detenerListenersFirestore();
         }
     }
+    // Evento: Restablecer Contraseña
+if (btnForgotPassword) {
+    btnForgotPassword.addEventListener('click', async () => {
+        const email = document.getElementById('login-email').value;
+        
+        // Validación preliminar: El usuario debe escribir el correo primero
+        if (!email) {
+            if (loginError) {
+                loginError.className = "text-red-500 text-sm text-center font-semibold";
+                loginError.classList.remove('hidden');
+                loginError.innerText = "Por favor, escribe tu correo electrónico en el campo de arriba para enviarte el enlace de recuperación.";
+            }
+            return;
+        }
+
+        try {
+            // Se invoca el método nativo de Firebase enviando el correo capturado
+            await sendPasswordResetEmail(auth, email);
+            
+            if (loginError) {
+                // Reutilizamos el contenedor de errores cambiando el color a verde para indicar éxito
+                loginError.className = "text-green-600 text-sm text-center font-semibold bg-green-50 p-2 rounded border border-green-200";
+                loginError.classList.remove('hidden');
+                loginError.innerText = "¡Enlace enviado! Revisa tu bandeja de entrada o la carpeta de spam para restablecer tu contraseña.";
+            }
+        } catch (error) {
+            console.error("Error al solicitar restablecimiento de contraseña:", error);
+            if (loginError) {
+                loginError.className = "text-red-500 text-sm text-center font-semibold";
+                loginError.classList.remove('hidden');
+                
+                // Errores comunes de Firebase Auth
+                if (error.code === 'auth/invalid-email') {
+                    loginError.innerText = "El formato del correo electrónico no es válido.";
+                } else if (error.code === 'auth/user-not-found') {
+                    loginError.innerText = "No existe ninguna cuenta registrada con este correo.";
+                } else {
+                    loginError.innerText = "Ocurrió un error al intentar enviar el correo. Inténtalo más tarde.";
+                }
+            }
+        }
+    });
+}
 });
 
 // Evento: Iniciar Sesión
@@ -84,6 +128,7 @@ formLogin.addEventListener('submit', async (e) => {
         formLogin.reset();
         loginError.classList.add('hidden');
     } catch (error) {
+        loginError.className = "text-red-500 text-sm text-center font-semibold";
         loginError.classList.remove('hidden');
         loginError.innerText = "Error: Credenciales incorrectas o usuario no encontrado.";
         console.error(error);
