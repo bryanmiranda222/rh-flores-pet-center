@@ -57,7 +57,7 @@ onAuthStateChanged(auth, (user) => {
         // Hay sesión activa
         if (loginContainer) loginContainer.classList.add('hidden');
         if (appContainer) appContainer.classList.remove('hidden');
-        
+
         // Verificamos que la función exista antes de llamarla
         if (typeof iniciarListenersFirestore === 'function') {
             iniciarListenersFirestore();
@@ -66,55 +66,55 @@ onAuthStateChanged(auth, (user) => {
         // No hay sesión (o acabas de cerrar sesión)
         if (appContainer) appContainer.classList.add('hidden');
         if (loginContainer) loginContainer.classList.remove('hidden');
-        
+
         // Verificamos que la función exista antes de llamarla
         if (typeof detenerListenersFirestore === 'function') {
             detenerListenersFirestore();
         }
     }
     // Evento: Restablecer Contraseña
-if (btnForgotPassword) {
-    btnForgotPassword.addEventListener('click', async () => {
-        const email = document.getElementById('login-email').value;
-        
-        // Validación preliminar: El usuario debe escribir el correo primero
-        if (!email) {
-            if (loginError) {
-                loginError.className = "text-red-500 text-sm text-center font-semibold";
-                loginError.classList.remove('hidden');
-                loginError.innerText = "Por favor, escribe tu correo electrónico en el campo de arriba para enviarte el enlace de recuperación.";
-            }
-            return;
-        }
+    if (btnForgotPassword) {
+        btnForgotPassword.addEventListener('click', async () => {
+            const email = document.getElementById('login-email').value;
 
-        try {
-            // Se invoca el método nativo de Firebase enviando el correo capturado
-            await sendPasswordResetEmail(auth, email);
-            
-            if (loginError) {
-                // Reutilizamos el contenedor de errores cambiando el color a verde para indicar éxito
-                loginError.className = "text-green-600 text-sm text-center font-semibold bg-green-50 p-2 rounded border border-green-200";
-                loginError.classList.remove('hidden');
-                loginError.innerText = "¡Enlace enviado! Revisa tu bandeja de entrada o la carpeta de spam para restablecer tu contraseña.";
+            // Validación preliminar: El usuario debe escribir el correo primero
+            if (!email) {
+                if (loginError) {
+                    loginError.className = "text-red-500 text-sm text-center font-semibold";
+                    loginError.classList.remove('hidden');
+                    loginError.innerText = "Por favor, escribe tu correo electrónico en el campo de arriba para enviarte el enlace de recuperación.";
+                }
+                return;
             }
-        } catch (error) {
-            console.error("Error al solicitar restablecimiento de contraseña:", error);
-            if (loginError) {
-                loginError.className = "text-red-500 text-sm text-center font-semibold";
-                loginError.classList.remove('hidden');
-                
-                // Errores comunes de Firebase Auth
-                if (error.code === 'auth/invalid-email') {
-                    loginError.innerText = "El formato del correo electrónico no es válido.";
-                } else if (error.code === 'auth/user-not-found') {
-                    loginError.innerText = "No existe ninguna cuenta registrada con este correo.";
-                } else {
-                    loginError.innerText = "Ocurrió un error al intentar enviar el correo. Inténtalo más tarde.";
+
+            try {
+                // Se invoca el método nativo de Firebase enviando el correo capturado
+                await sendPasswordResetEmail(auth, email);
+
+                if (loginError) {
+                    // Reutilizamos el contenedor de errores cambiando el color a verde para indicar éxito
+                    loginError.className = "text-green-600 text-sm text-center font-semibold bg-green-50 p-2 rounded border border-green-200";
+                    loginError.classList.remove('hidden');
+                    loginError.innerText = "¡Enlace enviado! Revisa tu bandeja de entrada o la carpeta de spam para restablecer tu contraseña.";
+                }
+            } catch (error) {
+                console.error("Error al solicitar restablecimiento de contraseña:", error);
+                if (loginError) {
+                    loginError.className = "text-red-500 text-sm text-center font-semibold";
+                    loginError.classList.remove('hidden');
+
+                    // Errores comunes de Firebase Auth
+                    if (error.code === 'auth/invalid-email') {
+                        loginError.innerText = "El formato del correo electrónico no es válido.";
+                    } else if (error.code === 'auth/user-not-found') {
+                        loginError.innerText = "No existe ninguna cuenta registrada con este correo.";
+                    } else {
+                        loginError.innerText = "Ocurrió un error al intentar enviar el correo. Inténtalo más tarde.";
+                    }
                 }
             }
-        }
-    });
-}
+        });
+    }
 });
 
 // Evento: Iniciar Sesión
@@ -144,12 +144,12 @@ if (btnLogout) {
         try {
             // 1. Volvemos a mostrar la pantalla de carga para una transición suave
             loadingContainer.classList.remove('hidden');
-            
+
             // 2. Cerramos la sesión en Firebase
             await signOut(auth);
-            
+
             // 3. Forzamos la recarga de la página para limpiar toda la memoria caché
-            window.location.reload(); 
+            window.location.reload();
         } catch (error) {
             console.error("Error al cerrar sesión:", error);
             alert("Hubo un problema al cerrar la sesión.");
@@ -198,7 +198,10 @@ function iniciarListenersFirestore() {
                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://w3.org">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg></button>
-                <button class="btn-edit bg-blue-500 text-white px-2 py-1 rounded text-xs print:hidden" style="border-radius: 50px;" title="Editar">✎</button>
+                <button class="btn-edit flex items-center justify-center bg-blue-500 text-white px-2 py-1 rounded text-xs print:hidden" style="border-radius: 50px;" title="Editar">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                </svg></button>
                 <button class="btn-del bg-red-500 text-white px-2 py-1 rounded text-xs print:hidden" style="border-radius: 50px;" title="Eliminar">✖︎</button>
             </div>
         `;
@@ -238,7 +241,9 @@ function iniciarListenersFirestore() {
                 <p class="text-gray-400 italic text-xs">"${aus.motivo}"</p>
             </div>
             <div class="flex flex-col gap-1 print:hidden">
-                <button class="btn-edit-aus bg-blue-400 text-white px-2 py-1 rounded text-[10px] hover:bg-blue-500" style="border-radius: 50px;" title="Editar">✎</button>
+                <button class="btn-edit-aus flex items-center justify-center bg-blue-400 text-white px-2 py-1 rounded text-[10px] hover:bg-blue-500" style="border-radius: 50px;" title="Editar">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
                 <button class="btn-del-aus bg-red-400 text-white px-2 py-1 rounded text-[10px] hover:bg-red-500" style="border-radius: 50px;" title="Eliminar">✖︎</button>
             </div>
         `;
