@@ -466,3 +466,33 @@ function iniciarListenersFirestore() {
         }
     });
 }
+
+// ==========================================
+// REFERENCIAS Y LÓGICA DEL MENÚ RESPONSIVO
+// ==========================================
+const btnMenu = document.getElementById('btn-menu');
+const btnCloseMenu = document.getElementById('btn-close-menu');
+const sidebar = document.getElementById('sidebar');
+const mobileOverlay = document.getElementById('mobile-overlay');
+
+// Función para abrir y cerrar el menú deslizable
+function toggleMenu() {
+    sidebar.classList.toggle('-translate-x-full');
+    mobileOverlay.classList.toggle('hidden');
+}
+
+// Escuchar clics en los botones y en el fondo oscuro
+if (btnMenu) btnMenu.addEventListener('click', toggleMenu);
+if (btnCloseMenu) btnCloseMenu.addEventListener('click', toggleMenu);
+if (mobileOverlay) mobileOverlay.addEventListener('click', toggleMenu);
+
+// Ocultar menú automáticamente al hacer clic en cualquier opción (solo en móviles)
+const sidebarLinks = sidebar.querySelectorAll('a');
+sidebarLinks.forEach(link => {
+    link.addEventListener('click', () => {
+        // Verifica si la pantalla es menor a 768px (breakpoint 'md' de Tailwind)
+        if (window.innerWidth < 768) { 
+            toggleMenu();
+        }
+    });
+});

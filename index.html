@@ -95,10 +95,35 @@
             </form>
         </div>
     </div>
-    <div id="app-container" class="hidden flex min-h-screen w-full">
-        <aside
-            class="w-64 bg-slate-900 text-white flex flex-col justify-between p-6 sticky top-0 h-screen print:hidden shadow-xl">
-            <div class="text-center">
+    <div id="app-container" class="hidden min-h-screen w-full">
+
+        <div
+            class="md:hidden flex items-center justify-between bg-slate-900 text-white p-4 sticky top-0 z-30 print:hidden shadow-md">
+            <div class="flex items-center gap-3">
+                <img src="fpc.jpg" alt="Logo" class="w-8 h-8 rounded-full border border-blue-500 object-cover">
+                <span class="font-bold text-sm">SISTEMA RRHH</span>
+            </div>
+            <button id="btn-menu" class="text-white hover:text-blue-400 focus:outline-none">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16">
+                    </path>
+                </svg>
+            </button>
+        </div>
+
+        <div id="mobile-overlay" class="fixed inset-0 bg-black/60 z-40 hidden md:hidden transition-opacity"></div>
+
+        <aside id="sidebar"
+            class="w-64 bg-slate-900 text-white flex flex-col justify-between p-6 h-screen print:hidden shadow-xl fixed inset-y-0 left-0 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out md:translate-x-0">
+            <button id="btn-close-menu"
+                class="md:hidden absolute top-4 right-4 text-gray-400 hover:text-white focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                </svg>
+            </button>
+
+            <div class="text-center mt-6 md:mt-0">
                 <img src="fpc.jpg" alt="Logo Flores Pet Center"
                     class="w-24 h-24 object-cover mx-auto mb-4 rounded-full border-2 border-blue-500 shadow-lg">
                 <h2 class="text-sm font-light tracking-widest text-blue-400 uppercase mb-1">Flores Pet Center</h2>
@@ -107,70 +132,61 @@
                 <div class="mt-10 space-y-4 text-left">
                     <a href="#app-container"
                         class="flex items-center gap-3 text-sm text-gray-300 hover:text-white transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z">
                             </path>
                         </svg>
                         Gestión de Personal
                     </a>
-
                     <a href="#app-container"
                         class="flex items-center gap-3 text-sm text-gray-300 hover:text-white transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                             </path>
                         </svg>
                         Generar Boleta
                     </a>
-
-                    <a href="#form-ausencia"
+                    <a href="#ausencia"
                         class="flex items-center gap-3 text-sm text-gray-300 hover:text-white transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
                             </path>
                         </svg>
                         Control de Ausencias
                     </a>
-
-                    <a href="#lista-ausencias"
+                    <a href="#ausencia"
                         class="flex items-center gap-3 text-sm text-gray-300 hover:text-white transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         Historial de Ausencias
                     </a>
-
                     <a href="#zona-impresion" id="link-boleta" style="border-radius: 50px;"
                         class="hidden flex items-center gap-3 text-sm text-gray-300 hover:text-white transition-colors">
-                        <svg class="w-5 h-5 " fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
+                        <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
                             </path>
                         </svg>
                         Ver Boleta Actual
                     </a>
                 </div>
             </div>
+
             <div class="border-t border-slate-700 pt-4 text-center">
                 <button id="btn-logout"
-                    class="w-full bg-red-600 hover:bg-red-700 text-white text-sm py-2 px-4 rounded mb-4 transition-colors"
-                    style="border-radius: 50px;">Cerrar Sesión</button>
-                <p class="text-[10px] text-slate-500 uppercase tracking-tighter">versión 1.0</p>
+                    class="w-full bg-red-600 hover:bg-red-700 text-white text-sm py-2 px-4 rounded mb-4 transition-colors">Cerrar
+                    Sesión</button>
+                <p class="text-[10px] text-slate-500 uppercase tracking-tighter">versión 0.1</p>
                 <p class="text-xs font-bold text-slate-300">RH UES-2026</p>
             </div>
         </aside>
-        <main class="flex-1 p-8 overflow-y-auto">
+
+        <main class="p-8 overflow-y-auto min-w-0 md:ml-64 w-full md:w-[calc(100%-16rem)]">
             <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-blue-500">
                     <div class="flex justify-center mb-2 text-blue-500">
@@ -232,7 +248,7 @@
                 </div>
             </div>
 
-            <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+            <div id="ausencia" class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
                 <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-yellow-500">
                     <div class="flex justify-center mb-2 text-yellow-500">
                         <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
