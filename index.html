@@ -179,7 +179,7 @@
 
             <div class="border-t border-slate-700 pt-4 text-center">
                 <button id="btn-logout"
-                    class="w-full bg-red-600 hover:bg-red-700 text-white text-sm py-2 px-4 rounded mb-4 transition-colors">Cerrar
+                    class="w-full bg-red-600 hover:bg-red-700 text-white text-sm py-2 px-4 rounded mb-4 transition-colors" style="border-radius: 50px;">Cerrar
                     Sesión</button>
                 <p class="text-[10px] text-slate-500 uppercase tracking-tighter">versión 0.1</p>
                 <p class="text-xs font-bold text-slate-300">RH UES-2026</p>
@@ -221,6 +221,11 @@
                                 placeholder="Ej: Gerente de Ventas">
                         </div>
                         <div>
+                            <label class="block text-sm font-medium">Fecha de Ingreso</label>
+                            <input type="date" id="fecha-ingreso" required
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                        <div>
                             <label class="block text-sm font-medium">Salario Base ($)</label>
                             <input type="number" id="salario" step="0.01" min="0" required
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
@@ -243,6 +248,22 @@
                     <h2 class="text-2xl font-bold mb-4 text-violet-700 text-center">Generar Boleta de Pago</h2>
                     <p class="text-sm text-gray-600 mb-4">Selecciona un empleado para calcular sus prestaciones de Ley.
                     </p>
+                    <div
+                        class="mb-4 print:hidden flex items-center gap-2 bg-green-50 p-3 rounded border border-green-200">
+                        <input type="checkbox" id="chk-aguinaldo"
+                            class="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500 cursor-pointer">
+                        <label for="chk-aguinaldo" class="text-sm text-green-800 font-bold cursor-pointer">
+                            Incluir pago de Aguinaldo
+                        </label>
+                    </div>
+                    <div
+                        class="mb-4 print:hidden flex items-center gap-2 bg-blue-50 p-3 rounded border border-blue-200">
+                        <input type="checkbox" id="chk-quincena25"
+                            class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer">
+                        <label for="chk-quincena25" class="text-sm text-blue-800 font-bold cursor-pointer">
+                            Incluir Quincena 25
+                        </label>
+                    </div>
                     <ul id="lista-empleados" class="space-y-2 mb-4 max-h-64 overflow-y-auto">
                     </ul>
                 </div>
@@ -323,7 +344,8 @@
                     <img src="fpc.jpg" alt="Logo de FPC" class="mx-auto mb-3"
                         style="max-height: 80px; width: auto; border-radius: 50%;">
                     <h1 class="text-3xl font-bold uppercase">Flores Pet Center S.A. de C.V.</h1>
-                    <p class="text-gray-500">Boleta de Pago de Salario</p>
+                    <p class="text-gray-500">Boleta de Pago de Salario</p><br><br>
+                    <p><strong>Fecha de Ingreso a la Empresa:</strong> <span id="bol-fecha-ingreso"></span></p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 mb-6">
@@ -331,6 +353,12 @@
                     <p><strong>DUI:</strong> <span id="bol-dui"></span></p>
                     <p><strong>Cargo:</strong> <span id="bol-cargo"></span></p>
                     <p><strong>Salario Base:</strong> $<span id="bol-salario"></span></p>
+                    <p id="bol-container-aguinaldo" class="hidden text-green-700 col-span-2 text-lg border-t pt-2 mt-2">
+                        <strong>Aguinaldo:</strong> $<span id="bol-aguinaldo"></span>
+                    </p>
+                    <p id="bol-container-quincena25" class="hidden text-blue-700 col-span-2 text-lg border-t pt-2 mt-2">
+                        <strong>Quincena 25:</strong> $<span id="bol-quincena25"></span>
+                    </p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-8">
@@ -345,7 +373,6 @@
                         <p class="flex justify-between"><span>Renta (ISR):</span> <span>-$<span
                                     id="bol-isr"></span></span>
                         </p>
-
                         <p class="flex justify-between font-bold mt-2 border-t pt-2"><span>Total a Recibir:</span>
                             <span>$<span id="bol-liquido"></span></span>
                         </p>

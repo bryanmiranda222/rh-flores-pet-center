@@ -265,6 +265,7 @@ function iniciarListenersFirestore() {
             nombre: document.getElementById('nombre').value,
             dui: document.getElementById('dui').value,
             cargo: document.getElementById('cargo').value,
+            fechaIngreso: document.getElementById('fecha-ingreso').value,
             salario: parseFloat(document.getElementById('salario').value)
         };
 
@@ -293,6 +294,7 @@ function iniciarListenersFirestore() {
         document.getElementById('nombre').value = emp.nombre;
         document.getElementById('dui').value = emp.dui;
         document.getElementById('cargo').value = emp.cargo;
+        document.getElementById('fecha-ingreso').value = emp.fechaIngreso || '';
         document.getElementById('salario').value = emp.salario;
         editStatus = true;
         idEdicion = id;
@@ -397,9 +399,11 @@ function iniciarListenersFirestore() {
     }
 
 
-    // 4. CÁLCULO DE BOLETA (ISR 2025)
+    // 4. CÁLCULO DE BOLETA (Incluye Aguinaldo y Quincena 25)
     function generarBoleta(emp) {
         const salario = emp.salario;
+
+        // Cálculos de deducciones estándar de ley
         const isss = salario > 1000 ? 30 : salario * 0.03;
         const afp = salario * 0.0725;
         const baseRenta = salario - isss - afp;
@@ -409,24 +413,87 @@ function iniciarListenersFirestore() {
         else if (baseRenta > 895.24) isr = (baseRenta - 895.24) * 0.20 + 60.00;
         else if (baseRenta > 550.00) isr = (baseRenta - 550.00) * 0.10 + 17.67;
 
-        const liquido = salario - isss - afp - isr;
+        let liquido = salario - isss - afp - isr;
 
+        // ==========================================
+        // LÓGICA DE AGUINALDO 
+        // ==========================================
+        let aguinaldo = 0;
+        const chkAguinaldo = document.getElementById('chk-aguinaldo');
+        const containerAguinaldo = document.getElementById('bol-container-aguinaldo');
+
+        if (chkAguinaldo && chkAguinaldo.checked && emp.fechaIngreso) {
+            const [year, month, day] = emp.fechaIngreso.split('-');
+            const fechaIngreso = new Date(year, month - 1, day);
+            const anioActual = new Date().getFullYear();
+            const fechaCorte = new Date(anioActual, 9, 20);
+
+            const milisegundosPorDia = 1000 * 60 * 60 * 24;
+            const diasTrabajados = Math.floor((fechaCorte - fechaIngreso) / milisegundosPorDia);
+
+            if (diasTrabajados > 0) {
+                const salarioDiario = salario / 30;
+                const aniosAntiguedad = diasTrabajados / 365;
+
+                if (aniosAntiguedad >= 10) aguinaldo = salarioDiario * 21;
+                else if (aniosAntiguedad >= 3) aguinaldo = salarioDiario * 19;
+                else if (aniosAntiguedad >= 1) aguinaldo = salarioDiario * 15;
+                else aguinaldo = (salarioDiario * 15 / 365) * diasTrabajados;
+            }
+
+            liquido += aguinaldo;
+            document.getElementById('bol-aguinaldo').innerText = aguinaldo.toFixed(2);
+            containerAguinaldo.classList.remove('hidden');
+        } else {
+            if (containerAguinaldo) containerAguinaldo.classList.add('hidden');
+        }
+
+        // ==========================================
+        // LÓGICA DE QUINCENA 25 
+        // ==========================================
+        let quincena25 = 0;
+        const chkQuincena25 = document.getElementById('chk-quincena25');
+        const containerQuincena25 = document.getElementById('bol-container-quincena25');
+
+        // Solo se ejecuta si la casilla está marcada
+        if (chkQuincena25 && chkQuincena25.checked) {
+            // Regla: Solo aplica para salarios menores o iguales a $1500.00
+            if (salario <= 1500.00) {
+                quincena25 = salario * 0.50; // Exactamente el 50% del salario nominal
+
+                // Se suma al líquido sin afectarse por descuentos de ley
+                liquido += quincena25;
+
+                document.getElementById('bol-quincena25').innerText = quincena25.toFixed(2);
+                containerQuincena25.classList.remove('hidden');
+            } else {
+                // Si el empleado gana más de $1500, se oculta el contenedor aunque marquen la casilla
+                if (containerQuincena25) containerQuincena25.classList.add('hidden');
+                alert(`Aviso: El empleado ${emp.nombre} no aplica para la Quincena 25 porque su salario ($${salario.toFixed(2)}) supera el límite legal de $1,500.00.`);
+            }
+        } else {
+            if (containerQuincena25) containerQuincena25.classList.add('hidden');
+        }
+
+        // ==========================================
+        // LLENADO DEL DOM PARA IMPRESIÓN
+        // ==========================================
         document.getElementById('bol-nombre').innerText = emp.nombre;
         document.getElementById('bol-dui').innerText = emp.dui;
         document.getElementById('bol-cargo').innerText = emp.cargo;
+        document.getElementById('bol-fecha-ingreso').innerText = emp.fechaIngreso;
         document.getElementById('bol-salario').innerText = salario.toFixed(2);
         document.getElementById('bol-isss').innerText = isss.toFixed(2);
         document.getElementById('bol-afp').innerText = afp.toFixed(2);
         document.getElementById('bol-isr').innerText = isr.toFixed(2);
         document.getElementById('bol-liquido').innerText = liquido.toFixed(2);
+
         document.getElementById('pat-isss').innerText = (salario > 1000 ? 75 : salario * 0.075).toFixed(2);
         document.getElementById('pat-afp').innerText = (salario * 0.0875).toFixed(2);
 
         zonaImpresion.classList.remove('hidden');
         window.location.hash = 'zona-impresion';
-        if (linkBoleta) {
-            linkBoleta.classList.remove('hidden');
-        }
+        if (linkBoleta) linkBoleta.classList.remove('hidden');
     }
 
 
@@ -434,6 +501,7 @@ function iniciarListenersFirestore() {
     const inputNombre = document.getElementById('nombre');
     const inputDui = document.getElementById('dui');
     const inputCargo = document.getElementById('cargo');
+    const inputFechaIngreso = document.getElementById('fecha-ingreso');
     const inputSalario = document.getElementById('salario');
 
     // Bloquear números y símbolos en Nombre (solo permite letras, tildes y espacios)
@@ -491,7 +559,7 @@ const sidebarLinks = sidebar.querySelectorAll('a');
 sidebarLinks.forEach(link => {
     link.addEventListener('click', () => {
         // Verifica si la pantalla es menor a 768px (breakpoint 'md' de Tailwind)
-        if (window.innerWidth < 768) { 
+        if (window.innerWidth < 768) {
             toggleMenu();
         }
     });
