@@ -179,7 +179,8 @@
 
             <div class="border-t border-slate-700 pt-4 text-center">
                 <button id="btn-logout"
-                    class="w-full bg-red-600 hover:bg-red-700 text-white text-sm py-2 px-4 rounded mb-4 transition-colors" style="border-radius: 50px;">Cerrar
+                    class="w-full bg-red-600 hover:bg-red-700 text-white text-sm py-2 px-4 rounded mb-4 transition-colors"
+                    style="border-radius: 50px;">Cerrar
                     Sesión</button>
                 <p class="text-[10px] text-slate-500 uppercase tracking-tighter">versión 0.1</p>
                 <p class="text-xs font-bold text-slate-300">RH UES-2026</p>
@@ -262,6 +263,14 @@
                             class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer">
                         <label for="chk-quincena25" class="text-sm text-blue-800 font-bold cursor-pointer">
                             Incluir Quincena 25
+                        </label>
+                    </div>
+                    <div
+                        class="mb-4 print:hidden flex items-center gap-2 bg-orange-50 p-3 rounded border border-orange-200">
+                        <input type="checkbox" id="chk-vacaciones"
+                            class="w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500 cursor-pointer">
+                        <label for="chk-vacaciones" class="text-sm text-orange-800 font-bold cursor-pointer">
+                            Incluir Bono de Vacaciones
                         </label>
                     </div>
                     <ul id="lista-empleados" class="space-y-2 mb-4 max-h-64 overflow-y-auto">
@@ -359,8 +368,13 @@
                     <p id="bol-container-quincena25" class="hidden text-blue-700 col-span-2 text-lg border-t pt-2 mt-2">
                         <strong>Quincena 25:</strong> $<span id="bol-quincena25"></span>
                     </p>
+                    <p id="bol-container-vacaciones"
+                        class="hidden text-yellow-700 col-span-2 text-lg border-t pt-2 mt-2">
+                        <strong>Vacaciones (30%):</strong> $<span id="bol-vacaciones"></span>
+                    </p>
                 </div>
-
+                <hr>
+                <br>
                 <div class="grid grid-cols-2 gap-8">
                     <div>
                         <h3 class="font-bold text-red-600 border-b mb-2">Descuentos de Ley (Empleado)</h3>

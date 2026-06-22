@@ -399,7 +399,7 @@ function iniciarListenersFirestore() {
     }
 
 
-    // 4. CÁLCULO DE BOLETA (Incluye Aguinaldo y Quincena 25)
+    // 4. CÁLCULO DE BOLETA (Incluye Aguinaldo, Quincena 25, y vacaciones)
     function generarBoleta(emp) {
         const salario = emp.salario;
 
@@ -473,6 +473,46 @@ function iniciarListenersFirestore() {
             }
         } else {
             if (containerQuincena25) containerQuincena25.classList.add('hidden');
+        }
+
+        // ==========================================
+        // LÓGICA DE VACACIONES (Bono 30%)
+        // ==========================================
+        let bonoVacaciones = 0;
+        const chkVacaciones = document.getElementById('chk-vacaciones');
+        const containerVacaciones = document.getElementById('bol-container-vacaciones');
+
+        // Solo se ejecuta si la casilla está marcada y el empleado tiene fecha de ingreso
+        if (chkVacaciones && chkVacaciones.checked && emp.fechaIngreso) {
+            const [year, month, day] = emp.fechaIngreso.split('-');
+            const fechaIngreso = new Date(year, month - 1, day);
+            const fechaActual = new Date(); // Se calcula con base en la fecha en la que se genera la boleta
+
+            const milisegundosPorDia = 1000 * 60 * 60 * 24;
+            const diasTrabajados = Math.floor((fechaActual - fechaIngreso) / milisegundosPorDia);
+
+            if (diasTrabajados > 0) {
+                const salarioDiario = salario / 30;
+
+                if (diasTrabajados >= 365) {
+                    // Tiene 1 año o más de servicio: Bono completo sobre los 15 días
+                    const salario15Dias = salarioDiario * 15;
+                    bonoVacaciones = salario15Dias * 0.30;
+                } else {
+                    // Tiene menos de 1 año: Bono proporcional al tiempo laborado
+                    const diasProporcionales = (15 / 365) * diasTrabajados;
+                    const salarioProporcional = salarioDiario * diasProporcionales;
+                    bonoVacaciones = salarioProporcional * 0.30;
+                }
+            }
+
+            // El bono del 30% se suma de forma íntegra al líquido (Exento de ISSS y AFP según la regla)
+            liquido += bonoVacaciones;
+
+            document.getElementById('bol-vacaciones').innerText = bonoVacaciones.toFixed(2);
+            containerVacaciones.classList.remove('hidden');
+        } else {
+            if (containerVacaciones) containerVacaciones.classList.add('hidden');
         }
 
         // ==========================================
