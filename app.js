@@ -2,6 +2,11 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebas
 import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 // 1. IMPORTAR MÓDULOS DE AUTENTICACIÓN
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import {
+    query,
+    where,
+    getDocs
+} from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDoNK2C7ZLgIeys4_pkeeA4tu5MWhnEe90",
@@ -206,7 +211,7 @@ function iniciarListenersFirestore() {
             </div>
         `;
 
-                    li.querySelector('.btn-calc').addEventListener('click', () => generarBoleta(emp));
+                    li.querySelector('.btn-calc').addEventListener('click', async () => { await generarBoleta(emp); });
                     li.querySelector('.btn-del').addEventListener('click', () => borrarEmpleado(id));
                     li.querySelector('.btn-edit').addEventListener('click', () => cargarParaEdicion(id, emp));
                     listaEmpleados.appendChild(li);
@@ -399,24 +404,106 @@ function iniciarListenersFirestore() {
     }
 
 
-    // 4. CÁLCULO DE BOLETA (Incluye Aguinaldo, Quincena 25, y vacaciones)
-    function generarBoleta(emp) {
-        const salario = emp.salario;
 
-        // Cálculos de deducciones estándar de ley
-        const isss = salario > 1000 ? 30 : salario * 0.03;
-        const afp = salario * 0.0725;
-        const baseRenta = salario - isss - afp;
+
+    // 4. CÁLCULO DE BOLETA (Incluye Ausencias, Aguinaldo, Quincena 25, y vacaciones)
+    async function generarBoleta(emp) { 
+        const salarioNominal = emp.salario;
+        const salarioDiario = salarioNominal / 30;
+
+        // ==========================================
+        // 1. CONSULTA A FIRESTORE: EVALUAR AUSENCIAS DEL MES
+        // ==========================================
+        let diasDescontados = 0;
+        let descuentoAusencias = 0;
+
+        try {
+            console.log(`Buscando ausencias en la BD para el empleado exacto: "${emp.nombre}"`);
+
+            const q = query(collection(db, "ausencias"), where("empleado", "==", emp.nombre));
+            const querySnapshot = await getDocs(q);
+
+            console.log(`Se encontraron ${querySnapshot.size} ausencias para este empleado en la BD.`);
+
+            const fechaActual = new Date();
+            const mesActual = fechaActual.getMonth(); // Mes actual (0-11)
+            const anioActual = fechaActual.getFullYear();
+
+            querySnapshot.forEach((doc) => {
+                const ausencia = doc.data();
+                console.log("Datos de la ausencia encontrada:", ausencia); // CHIVATO CLAVE
+
+                // Ajuste robusto: Busca las fechas
+                const fechaIniBD = ausencia.fechaInicio || ausencia.inicio || ausencia.ausInicio;
+                const fechaFinBD = ausencia.fechaFin || ausencia.fin || ausencia.ausFin;
+
+                if (!fechaIniBD || !fechaFinBD) {
+                    console.error("ERROR: No se encontró la fecha de inicio o fin en la base de datos.", ausencia);
+                    return; // Salta a la siguiente ausencia
+                }
+
+                // ==========================================
+                // DESCUENTOS ESTRICTOS
+                // ==========================================
+                // Solo descontará dinero si es "Permiso sin goce" o "Ausencia Injustificada"
+                if (ausencia.tipo === "Permiso sin goce" || ausencia.tipo === "Ausencia Injustificada") {
+                    const [year, month, day] = fechaIniBD.split('-');
+                    const inicio = new Date(year, month - 1, day);
+                    const [yearFin, monthFin, dayFin] = fechaFinBD.split('-');
+                    const fin = new Date(yearFin, monthFin - 1, dayFin);
+
+                    // Validar que la ausencia haya ocurrido en el mes y año actual
+                    if (inicio.getMonth() === mesActual && inicio.getFullYear() === anioActual) {
+                        const milisegundosPorDia = 1000 * 60 * 60 * 24;
+                        const dias = Math.floor((fin - inicio) / milisegundosPorDia) + 1;
+                        diasDescontados += dias;
+                        console.log(`¡Éxito! Se sumaron ${dias} días de descuento por: ${ausencia.tipo}`);
+                    } else {
+                        console.log("Esta ausencia NO es del mes actual, se ignora.");
+                    }
+                } else {
+                    // Si es Incapacidad ISSS, Maternidad o Permiso con goce, entra aquí y NO descuenta nada
+                    console.log(`Ausencia registrada como "${ausencia.tipo}". Según las reglas, NO aplica descuento en planilla.`);
+                }
+            });
+        } catch (error) {
+            console.error("Error al consultar ausencias en Firebase:", error);
+        }
+        console.log("Total final de días a descontar:", diasDescontados);
+        // Calcular monto a descontar y actualizar interfaz
+        const containerAusencias = document.getElementById('bol-container-ausencias');
+        if (diasDescontados > 0) {
+            descuentoAusencias = salarioDiario * diasDescontados;
+            if (containerAusencias) {
+                document.getElementById('bol-dias-ausentes').innerText = diasDescontados;
+                document.getElementById('bol-descuento-ausencias').innerText = descuentoAusencias.toFixed(2);
+                containerAusencias.classList.remove('hidden');
+            } else {
+                console.error("ERROR HTML: Falla al mostrar, te falta poner el div 'bol-container-ausencias' en el index.html");
+            }
+        } else {
+            if (containerAusencias) containerAusencias.classList.add('hidden');
+        }
+        // ==========================================
+        // 2. CÁLCULO DE LEY SOBRE SALARIO EFECTIVO
+        // ==========================================
+        // Se resta el dinero de los días no trabajados ANTES de calcular impuestos
+        const salarioEfectivo = salarioNominal - descuentoAusencias;
+
+        const isss = salarioEfectivo > 1000 ? 30 : salarioEfectivo * 0.03;
+        const afp = salarioEfectivo * 0.0725;
+        const baseRenta = salarioEfectivo - isss - afp;
         let isr = 0;
 
         if (baseRenta > 2038.10) isr = (baseRenta - 2038.10) * 0.30 + 288.57;
         else if (baseRenta > 895.24) isr = (baseRenta - 895.24) * 0.20 + 60.00;
         else if (baseRenta > 550.00) isr = (baseRenta - 550.00) * 0.10 + 17.67;
 
-        let liquido = salario - isss - afp - isr;
+        // Salario líquido base
+        let liquido = salarioEfectivo - isss - afp - isr;
 
         // ==========================================
-        // LÓGICA DE AGUINALDO 
+        // 3. LÓGICA DE AGUINALDO 
         // ==========================================
         let aguinaldo = 0;
         const chkAguinaldo = document.getElementById('chk-aguinaldo');
@@ -425,14 +512,13 @@ function iniciarListenersFirestore() {
         if (chkAguinaldo && chkAguinaldo.checked && emp.fechaIngreso) {
             const [year, month, day] = emp.fechaIngreso.split('-');
             const fechaIngreso = new Date(year, month - 1, day);
-            const anioActual = new Date().getFullYear();
-            const fechaCorte = new Date(anioActual, 9, 20);
+            const anioCorte = new Date().getFullYear();
+            const fechaCorte = new Date(anioCorte, 9, 20);
 
             const milisegundosPorDia = 1000 * 60 * 60 * 24;
             const diasTrabajados = Math.floor((fechaCorte - fechaIngreso) / milisegundosPorDia);
 
             if (diasTrabajados > 0) {
-                const salarioDiario = salario / 30;
                 const aniosAntiguedad = diasTrabajados / 365;
 
                 if (aniosAntiguedad >= 10) aguinaldo = salarioDiario * 21;
@@ -449,66 +535,53 @@ function iniciarListenersFirestore() {
         }
 
         // ==========================================
-        // LÓGICA DE QUINCENA 25 
+        // 4. LÓGICA DE QUINCENA 25 
         // ==========================================
         let quincena25 = 0;
         const chkQuincena25 = document.getElementById('chk-quincena25');
         const containerQuincena25 = document.getElementById('bol-container-quincena25');
 
-        // Solo se ejecuta si la casilla está marcada
         if (chkQuincena25 && chkQuincena25.checked) {
-            // Regla: Solo aplica para salarios menores o iguales a $1500.00
-            if (salario <= 1500.00) {
-                quincena25 = salario * 0.50; // Exactamente el 50% del salario nominal
-
-                // Se suma al líquido sin afectarse por descuentos de ley
+            if (salarioNominal <= 1500.00) {
+                quincena25 = salarioNominal * 0.50;
                 liquido += quincena25;
-
                 document.getElementById('bol-quincena25').innerText = quincena25.toFixed(2);
                 containerQuincena25.classList.remove('hidden');
             } else {
-                // Si el empleado gana más de $1500, se oculta el contenedor aunque marquen la casilla
                 if (containerQuincena25) containerQuincena25.classList.add('hidden');
-                alert(`Aviso: El empleado ${emp.nombre} no aplica para la Quincena 25 porque su salario ($${salario.toFixed(2)}) supera el límite legal de $1,500.00.`);
+                alert(`Aviso: El empleado ${emp.nombre} no aplica para la Quincena 25 porque su salario nominal ($${salarioNominal.toFixed(2)}) supera el límite legal de $1,500.00.`);
             }
         } else {
             if (containerQuincena25) containerQuincena25.classList.add('hidden');
         }
 
         // ==========================================
-        // LÓGICA DE VACACIONES (Bono 30%)
+        // 5. LÓGICA DE VACACIONES (Bono 30%)
         // ==========================================
         let bonoVacaciones = 0;
         const chkVacaciones = document.getElementById('chk-vacaciones');
         const containerVacaciones = document.getElementById('bol-container-vacaciones');
 
-        // Solo se ejecuta si la casilla está marcada y el empleado tiene fecha de ingreso
         if (chkVacaciones && chkVacaciones.checked && emp.fechaIngreso) {
             const [year, month, day] = emp.fechaIngreso.split('-');
             const fechaIngreso = new Date(year, month - 1, day);
-            const fechaActual = new Date(); // Se calcula con base en la fecha en la que se genera la boleta
+            const fechaActualHoy = new Date();
 
             const milisegundosPorDia = 1000 * 60 * 60 * 24;
-            const diasTrabajados = Math.floor((fechaActual - fechaIngreso) / milisegundosPorDia);
+            const diasTrabajados = Math.floor((fechaActualHoy - fechaIngreso) / milisegundosPorDia);
 
             if (diasTrabajados > 0) {
-                const salarioDiario = salario / 30;
-
                 if (diasTrabajados >= 365) {
-                    // Tiene 1 año o más de servicio: Bono completo sobre los 15 días
                     const salario15Dias = salarioDiario * 15;
                     bonoVacaciones = salario15Dias * 0.30;
                 } else {
-                    // Tiene menos de 1 año: Bono proporcional al tiempo laborado
                     const diasProporcionales = (15 / 365) * diasTrabajados;
                     const salarioProporcional = salarioDiario * diasProporcionales;
                     bonoVacaciones = salarioProporcional * 0.30;
                 }
             }
 
-            // El bono del 30% se suma de forma íntegra al líquido (Exento de ISSS y AFP según la regla)
             liquido += bonoVacaciones;
-
             document.getElementById('bol-vacaciones').innerText = bonoVacaciones.toFixed(2);
             containerVacaciones.classList.remove('hidden');
         } else {
@@ -516,21 +589,30 @@ function iniciarListenersFirestore() {
         }
 
         // ==========================================
-        // LLENADO DEL DOM PARA IMPRESIÓN
+        // 6. LLENADO DEL DOM PARA IMPRESIÓN
         // ==========================================
         document.getElementById('bol-nombre').innerText = emp.nombre;
         document.getElementById('bol-dui').innerText = emp.dui;
         document.getElementById('bol-cargo').innerText = emp.cargo;
-        document.getElementById('bol-fecha-ingreso').innerText = emp.fechaIngreso;
-        document.getElementById('bol-salario').innerText = salario.toFixed(2);
+
+        // Si tu HTML tiene el campo de fecha de ingreso, se llena. Si no, lo ignora.
+        const bolFechaIngreso = document.getElementById('bol-fecha-ingreso');
+        if (bolFechaIngreso) bolFechaIngreso.innerText = emp.fechaIngreso || 'No registrada';
+
+        // Salario Nominal siempre se muestra arriba intacto, la resta se ve en los descuentos
+        document.getElementById('bol-salario').innerText = salarioNominal.toFixed(2);
         document.getElementById('bol-isss').innerText = isss.toFixed(2);
         document.getElementById('bol-afp').innerText = afp.toFixed(2);
         document.getElementById('bol-isr').innerText = isr.toFixed(2);
         document.getElementById('bol-liquido').innerText = liquido.toFixed(2);
 
-        document.getElementById('pat-isss').innerText = (salario > 1000 ? 75 : salario * 0.075).toFixed(2);
-        document.getElementById('pat-afp').innerText = (salario * 0.0875).toFixed(2);
+        // Las aportaciones patronales también bajan porque el empleado devengó menos ese mes
+        document.getElementById('pat-isss').innerText = (salarioEfectivo > 1000 ? 75 : salarioEfectivo * 0.075).toFixed(2);
+        document.getElementById('pat-afp').innerText = (salarioEfectivo * 0.0875).toFixed(2);
 
+        // Mostrar sección
+        const zonaImpresion = document.getElementById('zona-impresion');
+        const linkBoleta = document.getElementById('link-boleta');
         zonaImpresion.classList.remove('hidden');
         window.location.hash = 'zona-impresion';
         if (linkBoleta) linkBoleta.classList.remove('hidden');

@@ -378,6 +378,11 @@
                 <div class="grid grid-cols-2 gap-8">
                     <div>
                         <h3 class="font-bold text-red-600 border-b mb-2">Descuentos de Ley (Empleado)</h3>
+                        <p id="bol-container-ausencias"
+                            class="hidden flex justify-between text-black-600">
+                            <span>Inasistencias / Permisos (<span id="bol-dias-ausentes"></span> días):</span>
+                            <span>-$<span id="bol-descuento-ausencias"></span></span>
+                        </p>
                         <p class="flex justify-between"><span>ISSS (3%):</span> <span>-$<span
                                     id="bol-isss"></span></span>
                         </p>
@@ -391,7 +396,6 @@
                             <span>$<span id="bol-liquido"></span></span>
                         </p>
                     </div>
-
                     <div>
                         <h3 class="font-bold text-blue-600 border-b mb-2">Aportaciones Patronales (Costo Empresa)</h3>
                         <p class="flex justify-between"><span>ISSS (7.5%):</span> <span>+$<span
